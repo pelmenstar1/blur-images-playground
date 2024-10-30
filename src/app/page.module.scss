@@ -6,7 +6,7 @@
   padding: 4px;
   resize: none;
 
-  $scrollbar-width: 1em;
+  $scrollbar-width: 0.5em;
 
   &:focus {
     border-color: hsl(var(--nextui-primary), 0.8);

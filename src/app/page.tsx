@@ -27,7 +27,7 @@ const defaultEncodeOptionsMap: DefaulEncodeOptionsMap = {
     progressive: false,
     trellisQuantisation: false,
     quality: 70,
-    quantizationTable: 0,
+    quantizationTable: 1,
   },
   png: {
     progressive: false,
@@ -91,6 +91,7 @@ interface NumberBlockProps extends FormatBlockProps<number> {
   title: string;
   min: number;
   max: number;
+  step?: number;
 }
 
 type SwitchBlockProps = FormatBlockProps<boolean> & { title: string };
@@ -128,7 +129,7 @@ function SliderBlock(props: NumberBlockProps) {
       minValue={props.min}
       maxValue={props.max}
       label={props.title}
-      step={1}
+      step={props.step ?? 1}
       onChange={(value) => {
         if (props.value !== value) {
           props.onValueChanged(value as number);
@@ -161,14 +162,16 @@ function number({
   title,
   min,
   max,
+  step
 }: {
   title: string;
   min: number;
   max: number;
+  step?: number;
 }): Option<number> {
   return {
     component: (props) => (
-      <SliderBlock {...props} min={min} max={max} title={title} />
+      <SliderBlock {...props} min={min} max={max} step={step} title={title} />
     ),
   };
 }
@@ -194,7 +197,7 @@ const formatHandlerMap: FormatHandlerMap = {
     adaptiveFiltering: boolean({ title: 'Adaptive filtering' }),
     colours: number({ min: 0, max: 256, title: 'Colors' }),
     compressionLevel: number({ min: 0, max: 9, title: 'Zlib compression' }),
-    dither: number({ min: 0, max: 1, title: 'Dither' }),
+    dither: number({ min: 0, max: 1, step: 0.1, title: 'Dither' }),
     effort: number({ min: 1, max: 10, title: 'CPU effort' }),
     quality: number({ min: 0, max: 100, title: 'Quality' }),
   },
@@ -349,7 +352,7 @@ function BlurImage({ url, useSvg, className }: BlurImageProps) {
   return useSvg ? (
     <SvgBlurImage url={url} className={className} />
   ) : (
-    <img src={url} alt="Blur image" className={className} />
+    <img src={url} alt="Blur image" decoding='async' className={className} />
   );
 }
 
@@ -399,6 +402,7 @@ function PreviewPanel(props: PreviewPanelProps) {
       <div className="p-3 h-1/2">
         <img
           src={props.originSource}
+          decoding='async'
           alt=""
           className="mx-auto object-contain h-full"
         />
@@ -420,10 +424,11 @@ export default function Home() {
     defaultImageProcessingOptions,
   );
   const [useSvg, setUseSvg] = useState<boolean>(true);
-  const blurResultId = useRef<number>(0);
   const [blurDataResult, setBlurDataResult] = useState<
     GenerateBlurDataResult | undefined
   >(undefined);
+
+  const blurResultId = useRef<number>(0);
 
   useEffect(() => {
     const requestId = ++blurResultId.current;
