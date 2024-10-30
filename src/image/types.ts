@@ -1,8 +1,6 @@
-import type { PresetEnum, KernelEnum } from "sharp";
+import type { PresetEnum, KernelEnum } from 'sharp';
 
-const imageFormats = ['jpeg', 'png', 'webp'] as const;
-
-export type ImageFormat = (typeof imageFormats)[number];
+export type ImageFormat = 'jpeg' | 'png' | 'webp';
 
 type EncodeOptionsMap = {
   jpeg: {
@@ -24,21 +22,21 @@ type EncodeOptionsMap = {
     dither: number;
   };
   webp: {
-     quality: number;
-     lossless: boolean;
-     nearLossless: boolean;
-     smartSubsample: boolean;
-     effort: number;
-     preset: keyof PresetEnum;
+    quality: number;
+    lossless: boolean;
+    nearLossless: boolean;
+    smartSubsample: boolean;
+    effort: number;
+    preset: keyof PresetEnum;
   };
-}
+};
 
 export type LimitedResizeOptions = {
   width: number;
   kernel: keyof KernelEnum;
-}
+};
 
-export type EncodeOptions<F extends ImageFormat> = EncodeOptionsMap[F]; 
+export type EncodeOptions<F extends ImageFormat> = EncodeOptionsMap[F];
 
 interface BasicImageProcessingOptions<F extends ImageFormat> {
   resizeOptions: LimitedResizeOptions;

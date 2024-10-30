@@ -1,12 +1,15 @@
-import sharp from "sharp";
-import { ImageProcessingOptions } from "./types";
+import sharp from 'sharp';
+import { ImageProcessingOptions } from './types';
 
 export type GenerateBlurDataResult = {
   url: string;
   decodedLength: number;
-}
+};
 
-export async function generateBlurDataUrl(imagePath: string, options: ImageProcessingOptions): Promise<GenerateBlurDataResult> {
+export async function generateBlurDataUrl(
+  imagePath: string,
+  options: ImageProcessingOptions,
+): Promise<GenerateBlurDataResult> {
   let builder = sharp(imagePath).resize(options.resizeOptions);
 
   switch (options.format) {
@@ -24,8 +27,8 @@ export async function generateBlurDataUrl(imagePath: string, options: ImageProce
   const buffer = await builder.toBuffer();
   const base64 = buffer.toString('base64');
 
-  return { 
+  return {
     url: `data:image/${options.format};base64,${base64}`,
-    decodedLength: buffer.byteLength
+    decodedLength: buffer.byteLength,
   };
 }
