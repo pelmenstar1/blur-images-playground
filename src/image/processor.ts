@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import { ImageProcessingOptions } from './types';
+import { IMAGE_DIRECTORY_PATH } from './constants';
 
 export type GenerateBlurDataResult = {
   url: string;
@@ -7,9 +8,11 @@ export type GenerateBlurDataResult = {
 };
 
 export async function generateBlurDataUrl(
-  imagePath: string,
+  name: string,
   options: ImageProcessingOptions,
 ): Promise<GenerateBlurDataResult> {
+  const imagePath = `${IMAGE_DIRECTORY_PATH}/${name}`;
+
   let builder = sharp(imagePath).resize(options.resizeOptions);
 
   switch (options.format) {

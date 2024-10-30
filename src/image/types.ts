@@ -2,6 +2,12 @@ import type { PresetEnum, KernelEnum } from 'sharp';
 
 export type ImageFormat = 'jpeg' | 'png' | 'webp';
 
+export type ImageInfo = {
+  name: string;
+  width: number;
+  height: number;
+};
+
 type EncodeOptionsMap = {
   jpeg: {
     quality: number;

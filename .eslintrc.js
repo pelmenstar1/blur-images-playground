@@ -1,8 +1,8 @@
 module.exports = {
-  "extends": [
-    "next/core-web-vitals",
-    "next/typescript",
-    "plugin:prettier/recommended"
+  extends: [
+    'next/core-web-vitals',
+    'next/typescript',
+    'plugin:prettier/recommended',
   ],
   env: {
     browser: true,
@@ -14,4 +14,4 @@ module.exports = {
     project: ['tsconfig.json', 'tsconfig.eslint.json'],
     tsconfigRootDir: __dirname,
   },
-}
+};

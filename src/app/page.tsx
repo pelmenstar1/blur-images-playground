@@ -4,11 +4,12 @@
 import {
   EncodeOptions,
   ImageFormat,
+  ImageInfo,
   ImageProcessingOptions,
   LimitedResizeOptions,
 } from '@/image/types';
 import React, { useEffect, useRef, useState } from 'react';
-import { getBlurData } from './generateUrlAction';
+import { getBlurData, listImagesAction } from './actions';
 import { Select, SelectItem } from '@nextui-org/select';
 import { Slider } from '@nextui-org/slider';
 import { Switch } from '@nextui-org/switch';
@@ -57,12 +58,6 @@ const defaultImageProcessingOptions: ImageProcessingOptions = {
   format: 'jpeg',
   encodeOptions: defaultEncodeOptionsMap.jpeg,
   resizeOptions: defaultResizeOptions,
-};
-
-const originInfo = {
-  src: '/image.png',
-  width: 1200,
-  height: 560,
 };
 
 interface FormatBlockProps<T> {
@@ -162,7 +157,7 @@ function number({
   title,
   min,
   max,
-  step
+  step,
 }: {
   title: string;
   min: number;
@@ -279,7 +274,10 @@ type OptionsPanelProps<F extends ImageFormat> = {
   options: ImageProcessingOptions<F>;
   useSvg: boolean;
   blurResult: GenerateBlurDataResult | undefined;
+  images: string[];
+  selectedImage: string;
 
+  onImageChanged: (name: string) => void;
   onUseSvgChanged: (value: boolean) => void;
   onFormatChanged: (value: ImageFormat) => void;
   onOptionsChanged: (value: ImageProcessingOptions<F>) => void;
@@ -289,6 +287,9 @@ function SideBar<F extends ImageFormat>({
   options,
   useSvg,
   blurResult,
+  images,
+  selectedImage,
+  onImageChanged,
   onUseSvgChanged,
   onFormatChanged,
   onOptionsChanged,
@@ -301,6 +302,15 @@ function SideBar<F extends ImageFormat>({
           decodedLength={blurResult.decodedLength}
         />
       ) : undefined}
+
+      <div className="p-3">
+        <SelectBlock
+          title="Image"
+          options={images}
+          onValueChanged={onImageChanged}
+          value={selectedImage}
+        />
+      </div>
 
       <div className="p-3">
         <SwitchBlock
@@ -341,27 +351,29 @@ function SideBar<F extends ImageFormat>({
 type BlurImageProps = {
   url: string | undefined;
   useSvg: boolean;
+  originInfo: ImageInfo;
   className?: string;
 };
 
-function BlurImage({ url, useSvg, className }: BlurImageProps) {
+function BlurImage({ url, useSvg, className, originInfo }: BlurImageProps) {
   if (url === undefined) {
     return undefined;
   }
 
   return useSvg ? (
-    <SvgBlurImage url={url} className={className} />
+    <SvgBlurImage url={url} className={className} originInfo={originInfo} />
   ) : (
-    <img src={url} alt="Blur image" decoding='async' className={className} />
+    <img src={url} alt="Blur image" decoding="async" className={className} />
   );
 }
 
 type SvgBlurImageProps = {
   url: string;
+  originInfo: ImageInfo;
   className?: string;
 };
 
-function SvgBlurImage({ url, className }: SvgBlurImageProps) {
+function SvgBlurImage({ url, className, originInfo }: SvgBlurImageProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -391,18 +403,18 @@ function SvgBlurImage({ url, className }: SvgBlurImageProps) {
 }
 
 type PreviewPanelProps = {
-  originSource: string;
+  originInfo: ImageInfo;
   blurSource: string | undefined;
   useSvg: boolean;
 };
 
-function PreviewPanel(props: PreviewPanelProps) {
+function PreviewPanel({ originInfo, blurSource, useSvg }: PreviewPanelProps) {
   return (
     <div className="w-3/4 max-h-screen">
       <div className="p-3 h-1/2">
         <img
-          src={props.originSource}
-          decoding='async'
+          src={`/images/${originInfo.name}`}
+          decoding="async"
           alt=""
           className="mx-auto object-contain h-full"
         />
@@ -410,9 +422,10 @@ function PreviewPanel(props: PreviewPanelProps) {
 
       <div className="p-3 h-1/2">
         <BlurImage
-          url={props.blurSource}
+          url={blurSource}
+          originInfo={originInfo}
           className="mx-auto object-contain h-full"
-          useSvg={props.useSvg}
+          useSvg={useSvg}
         />
       </div>
     </div>
@@ -423,6 +436,10 @@ export default function Home() {
   const [options, setOptions] = useState<ImageProcessingOptions>(
     defaultImageProcessingOptions,
   );
+  const [selectedImage, setSelectedImage] = useState<ImageInfo | undefined>(
+    undefined,
+  );
+  const [images, setImages] = useState<ImageInfo[] | undefined>(undefined);
   const [useSvg, setUseSvg] = useState<boolean>(true);
   const [blurDataResult, setBlurDataResult] = useState<
     GenerateBlurDataResult | undefined
@@ -431,26 +448,48 @@ export default function Home() {
   const blurResultId = useRef<number>(0);
 
   useEffect(() => {
-    const requestId = ++blurResultId.current;
+    if (selectedImage) {
+      const requestId = ++blurResultId.current;
 
-    getBlurData(options).then((result) => {
-      if (requestId === blurResultId.current) {
-        setBlurDataResult(result);
+      getBlurData(selectedImage.name, options).then((result) => {
+        if (requestId === blurResultId.current) {
+          setBlurDataResult(result);
+        }
+      });
+    }
+  }, [selectedImage, options]);
+
+  useEffect(() => {
+    listImagesAction().then((images) => {
+      setImages(images);
+
+      if (images.length > 0) {
+        setSelectedImage(images[0]);
       }
     });
-  }, [options]);
+  }, []);
+
+  if (images === undefined || selectedImage === undefined) {
+    return undefined;
+  }
 
   return (
     <main className="flex flex-row h-screen">
       <PreviewPanel
-        originSource={originInfo.src}
+        originInfo={selectedImage}
         blurSource={blurDataResult?.url}
         useSvg={useSvg}
       />
+
       <SideBar<ImageFormat>
         options={options}
         useSvg={useSvg}
         blurResult={blurDataResult}
+        images={images?.map((image) => image.name)}
+        selectedImage={selectedImage.name}
+        onImageChanged={(name) =>
+          setSelectedImage(images.find((value) => value.name === name))
+        }
         onOptionsChanged={setOptions}
         onUseSvgChanged={setUseSvg}
         onFormatChanged={(format) => {
