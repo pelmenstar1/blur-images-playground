@@ -1,0 +1,31 @@
+.blur-data-url-area {
+  border: hsl(var(--nextui-primary)) 2px solid;
+  border-radius: 10px;
+
+  min-height: 100px;
+  padding: 4px;
+  resize: none;
+
+  $scrollbar-width: 1em;
+
+  &:focus {
+    border-color: hsl(var(--nextui-primary), 0.8);
+  }
+
+  &::-webkit-scrollbar {
+    width: $scrollbar-width;
+  }
+
+  &::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px #0000004d;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #322f2f;
+    border-radius: $scrollbar-width * 0.5;
+  }
+
+  &::-webkit-resizer {
+    background: #0a0a0a;
+  }
+}
