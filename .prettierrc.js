@@ -1,4 +1,7 @@
-module.exports = {
+// @ts-check
+
+/** @type {import("prettier").Config} */
+const config = {
   singleQuote: true,
   overrides: [
     {
@@ -7,3 +10,5 @@ module.exports = {
     },
   ],
 };
+
+export default config;
