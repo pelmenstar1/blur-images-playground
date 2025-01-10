@@ -5,6 +5,7 @@ import { IMAGE_DIRECTORY_PATH } from './constants';
 export type GenerateBlurDataResult = {
   url: string;
   decodedLength: number;
+  durationMs: number;
 };
 
 export async function generateBlurDataUrl(
@@ -27,11 +28,16 @@ export async function generateBlurDataUrl(
       break;
   }
 
+  const startTimeNs = process.hrtime.bigint();
   const buffer = await builder.toBuffer();
+  const endTimeNs = process.hrtime.bigint();
+  const durationMs = Number(endTimeNs - startTimeNs) / 1_000_000;
+
   const base64 = buffer.toString('base64');
 
   return {
     url: `data:image/${options.format};base64,${base64}`,
     decodedLength: buffer.byteLength,
+    durationMs,
   };
 }

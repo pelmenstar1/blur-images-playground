@@ -23,7 +23,7 @@ const formatHandlerMap: FormatHandlerMap = {
     overshootDeringing: boolean({ title: 'Overshoot deringing' }),
     progressive: boolean({ title: 'Progressive' }),
     trellisQuantisation: boolean({ title: 'Trellis quantisation' }),
-    quality: number({ title: 'Quality', min: 0, max: 10 }),
+    quality: number({ title: 'Quality', min: 0, max: 100 }),
     quantizationTable: number({ title: 'Quanization table', min: 0, max: 8 }),
   },
   png: {
@@ -89,22 +89,26 @@ function OptionsSubPanel<T>({
 }
 
 type BlurDataTextPanelProps = {
-  blurDataUrl: string;
-  decodedLength: number;
+  blurData: GenerateBlurDataResult;
 };
 
-function BlurDataTextPanel(props: BlurDataTextPanelProps) {
+function BlurDataTextPanel({ blurData }: BlurDataTextPanelProps) {
+  const base64Overhead =
+    (1 - blurData.decodedLength / blurData.url.length) * 100;
+
   return (
     <div className="p-3">
       <textarea
         readOnly={true}
         spellCheck={false}
         className={`w-full ${styles['blur-data-url-area']}`}
-        value={props.blurDataUrl}
+        value={blurData.url}
       />
 
-      <p>Text length: {props.blurDataUrl.length}</p>
-      <p>Decoded length (in bytes): {props.decodedLength}</p>
+      <p>Text length: {blurData.url.length}</p>
+      <p>Decoded length (in bytes): {blurData.decodedLength}</p>
+      <p>Base64 overhead: {base64Overhead.toFixed(1)}%</p>
+      <p>Transcode time: {blurData.durationMs.toFixed(2)} ms</p>
     </div>
   );
 }
@@ -135,12 +139,7 @@ export function SideBar<F extends ImageFormat>({
 }: SideBarProps<F>) {
   return (
     <div className="w-full basis-1/4 pr-2 overflow-y-scroll">
-      {blurResult ? (
-        <BlurDataTextPanel
-          blurDataUrl={blurResult.url}
-          decodedLength={blurResult.decodedLength}
-        />
-      ) : undefined}
+      {blurResult ? <BlurDataTextPanel blurData={blurResult} /> : undefined}
 
       <div className="p-3">
         <SelectBlock
